@@ -34,7 +34,6 @@ public class Item {
     @Column(nullable = false)
     private Integer stock;
 
-    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ItemType type;

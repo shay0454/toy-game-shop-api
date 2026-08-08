@@ -23,7 +23,7 @@ public class Player {
     @Column(unique = true, nullable = false)
     private String nickname;
 
-    @Min(0) @NotNull
+    @Min(0)
     @Column(nullable = false)
     private Long gold;
 
