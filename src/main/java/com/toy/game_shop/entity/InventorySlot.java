@@ -1,11 +1,11 @@
 package com.toy.game_shop.entity;
 
+import com.toy.game_shop.type.ItemType;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -13,8 +13,9 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "transactions")
-public class Transaction {
+@Table(name = "inventory")
+public class InventorySlot {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -30,22 +31,7 @@ public class Transaction {
     private Item item;
 
     @NotNull
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "shop_id", nullable = false)
-    private Shop shop;
-
-    @NotNull
-    @Min(1)
-    private Integer quantity;
-
-    @NotNull
     @Min(0)
-    private Long priceAtTransaction;
-
-    private LocalDateTime transactedTime;
-
-    @PrePersist
-    public void prePersist(){
-        transactedTime = LocalDateTime.now();
-    }
+    @Max(99)
+    private Integer quantity;
 }

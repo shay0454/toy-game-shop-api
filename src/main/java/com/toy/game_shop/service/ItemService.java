@@ -51,8 +51,6 @@ public class ItemService {
                 .orElseThrow(()->new NoSuchElementException("Item not found"));
 
         if(request.getName()!=null) item.setName(request.getName());
-        if(request.getPrice()!=null) item.setPrice(request.getPrice());
-        if(request.getStock()!=null) item.setStock(request.getStock());
         if(request.getType()!=null) item.setType(request.getType());
 
         return it.save(item);

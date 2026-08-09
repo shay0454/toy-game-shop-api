@@ -24,8 +24,6 @@ class ItemServiceTest {
     private Item newItem(String name,ItemType type){
         return Item.builder()
                 .name(name)
-                .price(500L)
-                .stock(10)
                 .type(type)
                 .build();
     }
@@ -39,8 +37,6 @@ class ItemServiceTest {
 
         Assertions.assertThat(saved.getId()).isNotNull();
         Assertions.assertThat(saved.getName()).isEqualTo("Sword");
-        Assertions.assertThat(saved.getPrice()).isEqualTo(500L);
-        Assertions.assertThat(saved.getStock()).isEqualTo(10);
         Assertions.assertThat(saved.getType()).isEqualTo(ItemType.WEAPON);
     }
 
@@ -54,8 +50,6 @@ class ItemServiceTest {
 
         Assertions.assertThat(found.getId()).isNotNull();
         Assertions.assertThat(found.getName()).isEqualTo("Sword");
-        Assertions.assertThat(found.getPrice()).isEqualTo(500L);
-        Assertions.assertThat(found.getStock()).isEqualTo(10);
         Assertions.assertThat(found.getType()).isEqualTo(ItemType.WEAPON);
     }
 
@@ -76,8 +70,6 @@ class ItemServiceTest {
 
         Assertions.assertThat(found.getId()).isNotNull();
         Assertions.assertThat(found.getName()).isEqualTo("Sword");
-        Assertions.assertThat(found.getPrice()).isEqualTo(500L);
-        Assertions.assertThat(found.getStock()).isEqualTo(10);
         Assertions.assertThat(found.getType()).isEqualTo(ItemType.WEAPON);
     }
 
@@ -124,23 +116,21 @@ class ItemServiceTest {
         Item item = newItem("Sword",ItemType.WEAPON);
 
         ItemPatchRequest request = new ItemPatchRequest();
-        request.setPrice(2000L);
-        request.setStock(1000);
+        request.setName("Long Sword");
+        request.setType(ItemType.ARMOR);
 
         Item saved = itemService.addItem(item);
         Item updated = itemService.updateItem(saved.getId(),request);
 
-        Assertions.assertThat(updated.getName()).isEqualTo("Sword");
-        Assertions.assertThat(updated.getPrice()).isEqualTo(2000L);
-        Assertions.assertThat(updated.getStock()).isEqualTo(1000);
-        Assertions.assertThat(updated.getType()).isEqualTo(ItemType.WEAPON);
+        Assertions.assertThat(updated.getName()).isEqualTo("Long Sword");
+        Assertions.assertThat(updated.getType()).isEqualTo(ItemType.ARMOR);
     }
 
     @Test
     @DisplayName("미존재 id 패치 적용 확인")
     void updateItemByNonId(){
         ItemPatchRequest request = new ItemPatchRequest();
-        request.setPrice(2000L);
+        request.setName("Long Sword");
 
         Assertions.assertThatThrownBy(()->itemService.updateItem(-1L,request))
                 .isInstanceOf(NoSuchElementException.class);

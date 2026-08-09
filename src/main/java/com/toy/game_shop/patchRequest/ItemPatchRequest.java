@@ -8,7 +8,5 @@ import lombok.Setter;
 @Setter
 public class ItemPatchRequest {
     private String name;
-    private Long price;
-    private Integer stock;
     private ItemType type;
 }

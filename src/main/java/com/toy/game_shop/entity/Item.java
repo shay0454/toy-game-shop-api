@@ -2,7 +2,6 @@ package com.toy.game_shop.entity;
 
 import com.toy.game_shop.type.ItemType;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
@@ -13,7 +12,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "item")
+@Table(name = "item", comment = "아이템 정의 테이블")
 public class Item {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,16 +22,6 @@ public class Item {
     @Size(min = 1, message = "Item명 입력")
     @Column(unique = true, nullable = false)
     private String name;
-
-    @NotNull
-    @Min(0)
-    @Column(nullable = false)
-    private Long price;
-
-    @NotNull
-    @Min(0)
-    @Column(nullable = false)
-    private Integer stock;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

@@ -1,6 +1,5 @@
 package com.toy.game_shop.entity;
 
-import com.toy.game_shop.type.ItemType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -12,16 +11,16 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"player_id","item_id"}))
-public class Inventory {
+@Table(name = "shop_stock", uniqueConstraints = @UniqueConstraint(columnNames = {"shop_id","item_id"}))
+public class ShopStock {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "player_id", nullable = false)
-    private Player player;
+    @JoinColumn(name = "shop_id", nullable = false)
+    private Shop shop;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
@@ -30,5 +29,11 @@ public class Inventory {
 
     @NotNull
     @Min(0)
-    private Integer quantity;
+    @Column(nullable = false)
+    private Integer stock;
+
+    @NotNull
+    @Min(0)
+    @Column(nullable = false)
+    private Long price;
 }

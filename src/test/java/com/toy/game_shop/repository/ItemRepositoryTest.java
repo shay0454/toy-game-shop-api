@@ -25,13 +25,13 @@ class ItemRepositoryTest {
 
     @BeforeEach
     void before(){
-        sword = itemRepository.save(Item.builder().name("Long Sword").price(500L).stock(10).type(ItemType.WEAPON).build());
-        itemRepository.save(Item.builder().name("Battle Axe").price(700L).stock(5).type(ItemType.WEAPON).build());
-        itemRepository.save(Item.builder().name("Iron Shield").price(300L).stock(8).type(ItemType.ARMOR).build());
-        itemRepository.save(Item.builder().name("Health Potion").price(50L).stock(999).type(ItemType.CONSUMABLE).build());
-        itemRepository.save(Item.builder().name("Iron Ore").price(20L).stock(500).type(ItemType.MATERIAL).build());
-        itemRepository.save(Item.builder().name("Broken Item").price(10L).stock(0).type(ItemType.WEAPON).build());
-        itemRepository.save(Item.builder().name("Unknown Box").price(1L).stock(1).type(ItemType.NONE).build());
+        sword = itemRepository.save(Item.builder().name("Long Sword").type(ItemType.WEAPON).build());
+        itemRepository.save(Item.builder().name("Battle Axe").type(ItemType.WEAPON).build());
+        itemRepository.save(Item.builder().name("Iron Shield").type(ItemType.ARMOR).build());
+        itemRepository.save(Item.builder().name("Health Potion").type(ItemType.CONSUMABLE).build());
+        itemRepository.save(Item.builder().name("Iron Ore").type(ItemType.MATERIAL).build());
+        itemRepository.save(Item.builder().name("Broken Item").type(ItemType.WEAPON).build());
+        itemRepository.save(Item.builder().name("Unknown Box").type(ItemType.NONE).build());
     }
 
     @Test
