@@ -40,8 +40,8 @@ public class ShopStockService {
     }
 
     public ShopStock addShopStock(ShopStock stock){
-        boolean exists = shopStockRepository.findByShopAndItem(stock.getShop(), stock.getItem()).isPresent();
-        if(exists){
+        if(shopStockRepository.findByShopAndItem(stock.getShop(),
+                stock.getItem()).isPresent()){
             throw new IllegalStateException("이미 등록된 상점-아이템 조합");
         }
 

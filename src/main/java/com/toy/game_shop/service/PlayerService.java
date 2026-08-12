@@ -59,4 +59,19 @@ public class PlayerService {
         playerRepository.deleteById(id);
     }
 
+    public Player spendGold(Long id, Long amount){
+        if(amount <= 0){
+            throw new IllegalArgumentException("amount는 0보다 커야 함");
+        }
+
+        Player player = findById(id);
+        long remaining = player.getGold() - amount;
+        if(remaining < 0){
+            throw new IllegalStateException("골드 부족");
+        }
+
+        player.setGold(remaining);
+        return playerRepository.save(player);
+    }
+
 }
