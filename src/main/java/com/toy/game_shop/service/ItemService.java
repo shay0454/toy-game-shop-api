@@ -1,7 +1,7 @@
 package com.toy.game_shop.service;
 
 import com.toy.game_shop.entity.Item;
-import com.toy.game_shop.patchRequest.ItemPatchRequest;
+import com.toy.game_shop.dto.item.ItemPatchRequest;
 import com.toy.game_shop.repository.ItemRepository;
 import com.toy.game_shop.type.ItemType;
 import lombok.RequiredArgsConstructor;

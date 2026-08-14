@@ -26,4 +26,7 @@ public class Item {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ItemType type;
+
+    @Size(max = 500)
+    private String description;
 }

@@ -1,5 +1,7 @@
 package com.toy.game_shop.controller;
 
+import com.toy.game_shop.dto.inventory.InventorySlotListResponse;
+import com.toy.game_shop.dto.inventory.InventorySlotResponse;
 import com.toy.game_shop.entity.InventorySlot;
 import com.toy.game_shop.entity.Item;
 import com.toy.game_shop.entity.Player;
@@ -21,16 +23,18 @@ public class InventoryController {
     private final ItemService itemService;
 
     @GetMapping
-    public List<InventorySlot> findByPlayer(@PathVariable Long playerId){
-        return inventoryService.findByPlayerId(playerId);
+    public InventorySlotListResponse findByPlayer(@PathVariable Long playerId){
+        List<InventorySlot> slots = inventoryService.findByPlayerId(playerId);
+        return new InventorySlotListResponse(slots);
     }
 
     @PostMapping("/{itemId}")
-    public List<InventorySlot> addQuantity(@PathVariable Long playerId, @PathVariable
+    public InventorySlotListResponse addQuantity(@PathVariable Long playerId, @PathVariable
                                      Long itemId, @RequestParam Integer amount){
         Player player = playerService.findById(playerId);
         Item item = itemService.findById(itemId);
-        return inventoryService.addQuantity(player,item,amount);
+        List<InventorySlot> slots = inventoryService.addQuantity(player,item,amount);
+        return new InventorySlotListResponse(slots);
     }
 
     @PostMapping("/slot/{fromSlotId}/merge/{toSlotId}")
@@ -42,10 +46,10 @@ public class InventoryController {
     }
 
     @PostMapping("/slot/{slotId}/split")
-    public InventorySlot splitSlot(@PathVariable Long playerId,
+    public InventorySlotResponse splitSlot(@PathVariable Long playerId,
                                    @PathVariable Long slotId,
                                    @RequestParam Integer amount){
-        return inventoryService.splitSlot(slotId, amount);
+        return new InventorySlotResponse(inventoryService.splitSlot(slotId, amount));
     }
 
     @DeleteMapping("/{itemId}")

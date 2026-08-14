@@ -3,7 +3,7 @@ package com.toy.game_shop.service;
 import com.toy.game_shop.entity.Item;
 import com.toy.game_shop.entity.Shop;
 import com.toy.game_shop.entity.ShopStock;
-import com.toy.game_shop.patchRequest.ShopStockPatchRequest;
+import com.toy.game_shop.dto.shopStock.ShopStockPatchRequest;
 import com.toy.game_shop.repository.ItemRepository;
 import com.toy.game_shop.repository.ShopRepository;
 import com.toy.game_shop.type.ItemType;
@@ -16,8 +16,6 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
 
 import java.util.NoSuchElementException;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
 @Import(ShopStockService.class)

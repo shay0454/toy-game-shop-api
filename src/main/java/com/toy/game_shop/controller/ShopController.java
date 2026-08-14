@@ -1,7 +1,10 @@
 package com.toy.game_shop.controller;
 
+import com.toy.game_shop.dto.shop.ShopCreateRequest;
+import com.toy.game_shop.dto.shop.ShopListResponse;
+import com.toy.game_shop.dto.shop.ShopResponse;
 import com.toy.game_shop.entity.Shop;
-import com.toy.game_shop.patchRequest.ShopPatchRequest;
+import com.toy.game_shop.dto.shop.ShopPatchRequest;
 import com.toy.game_shop.service.ShopService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,22 +23,28 @@ ShopController {
     private final ShopService shopService;
 
     @GetMapping
-    public List<Shop> findAll(){
-        return shopService.findAll();
+    public ShopListResponse findAll(){
+        List<Shop> shops = shopService.findAll();
+        return new ShopListResponse(shops);
     }
 
     @GetMapping("{id}")
-    public Shop findById(@PathVariable Long id){
-        return shopService.findById(id);
+    public ShopResponse findById(@PathVariable Long id){
+        return new ShopResponse(shopService.findById(id));
     }
 
     @GetMapping("/name/{name}")
-    public Shop findByName(@PathVariable String name){
-        return shopService.findByName(name);
+    public ShopResponse findByName(@PathVariable String name){
+
+        return new ShopResponse(shopService.findByName(name));
     }
 
     @PostMapping
-    public ResponseEntity<Shop> addShop(@RequestBody @Valid Shop shop){
+    public ResponseEntity<ShopResponse> addShop(@RequestBody @Valid ShopCreateRequest request){
+        Shop shop = Shop.builder()
+                .name(request.getName())
+                .build();
+
         Shop savedShop = shopService.addShop(shop);
 
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
@@ -43,12 +52,13 @@ ShopController {
                 .buildAndExpand(savedShop.getId())
                 .toUri();
 
-        return ResponseEntity.created(location).build();
+        return ResponseEntity.created(location).body(new ShopResponse(savedShop));
     }
 
     @PatchMapping("{id}")
-    public ResponseEntity<Shop> updateShop(@PathVariable Long id, @RequestBody ShopPatchRequest request){
-        return ResponseEntity.ok(shopService.updateShop(id, request));
+    public ResponseEntity<ShopResponse> updateShop(@PathVariable Long id, @RequestBody ShopPatchRequest request){
+        Shop updated = shopService.updateShop(id, request);
+        return ResponseEntity.ok(new ShopResponse(updated));
     }
 
     @DeleteMapping("{id}")

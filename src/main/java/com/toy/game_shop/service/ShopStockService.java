@@ -3,7 +3,7 @@ package com.toy.game_shop.service;
 import com.toy.game_shop.entity.Item;
 import com.toy.game_shop.entity.Shop;
 import com.toy.game_shop.entity.ShopStock;
-import com.toy.game_shop.patchRequest.ShopStockPatchRequest;
+import com.toy.game_shop.dto.shopStock.ShopStockPatchRequest;
 import com.toy.game_shop.repository.ShopStockRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

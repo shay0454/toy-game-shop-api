@@ -1,4 +1,4 @@
-package com.toy.game_shop.patchRequest;
+package com.toy.game_shop.dto.shopStock;
 
 import lombok.Getter;
 import lombok.Setter;

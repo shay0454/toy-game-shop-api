@@ -1,12 +1,16 @@
 package com.toy.game_shop.controller;
 
+import com.toy.game_shop.dto.shopStock.ShopStockCreateRequest;
+import com.toy.game_shop.dto.shopStock.ShopStockListResponse;
+import com.toy.game_shop.dto.shopStock.ShopStockResponse;
 import com.toy.game_shop.entity.Item;
 import com.toy.game_shop.entity.Shop;
 import com.toy.game_shop.entity.ShopStock;
-import com.toy.game_shop.patchRequest.ShopStockPatchRequest;
+import com.toy.game_shop.dto.shopStock.ShopStockPatchRequest;
 import com.toy.game_shop.service.ItemService;
 import com.toy.game_shop.service.ShopService;
 import com.toy.game_shop.service.ShopStockService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,29 +28,30 @@ public class ShopStockController {
     private final ShopStockService shopStockService;
 
     @GetMapping
-    public List<ShopStock> findAllStockByShopId(@PathVariable Long shopId){
-        return shopStockService.findByShopId(shopId);
+    public ShopStockListResponse findAllStockByShopId(@PathVariable Long shopId){
+        List<ShopStock> shopStocks =  shopStockService.findByShopId(shopId);
+        return new ShopStockListResponse(shopStocks);
     }
 
     @GetMapping("/{stockId}")
-    public ShopStock findStockByStockId(@PathVariable Long shopId,
-                                        @PathVariable Long stockId){
-        return shopStockService.findByShopStockId(shopId, stockId);
+    public ShopStockResponse findStockByStockId(@PathVariable Long shopId,
+                                                @PathVariable Long stockId){
+        return new ShopStockResponse(shopStockService.findByShopStockId(shopId, stockId));
     }
 
     @GetMapping("/item/{itemId}")
-    public ShopStock findStockByShopIdAndItemId(@PathVariable Long shopId,
+    public ShopStockResponse findStockByShopIdAndItemId(@PathVariable Long shopId,
                                                 @PathVariable Long itemId){
         Shop shop = shopService.findById(shopId);
         Item item = itemService.findById(itemId);
 
-        return shopStockService.findByShopAndItem(shop,item);
+        return new ShopStockResponse(shopStockService.findByShopAndItem(shop,item));
     }
 
     @PostMapping
-    public ResponseEntity<ShopStock> addShopStock(@PathVariable Long shopId,
+    public ResponseEntity<ShopStockResponse> addShopStock(@PathVariable Long shopId,
                                        @RequestParam Long itemId,
-                                       @RequestBody ShopStockPatchRequest request){
+                                       @RequestBody @Valid ShopStockCreateRequest request){
         Shop shop = shopService.findById(shopId);
         Item item = itemService.findById(itemId);
 
@@ -64,26 +69,27 @@ public class ShopStockController {
                 .buildAndExpand(saved.getId())
                 .toUri();
 
-        return ResponseEntity.created(location).build();
+        return ResponseEntity.created(location).body(new ShopStockResponse(saved));
     }
 
     @PatchMapping("{stockId}")
-    public ResponseEntity<ShopStock> updateShopStock(
+    public ResponseEntity<ShopStockResponse> updateShopStock(
             @PathVariable Long shopId, @PathVariable Long stockId,
             @RequestBody ShopStockPatchRequest request){
-        return ResponseEntity.ok(shopStockService.updateShopStock(shopId,stockId,request));
+        ShopStock updated = shopStockService.updateShopStock(shopId,stockId,request);
+        return ResponseEntity.ok(new ShopStockResponse(updated));
     }
 
     @PostMapping("{stockId}/increase")
-    public ShopStock increaseStock(@PathVariable Long shopId,
+    public ShopStockResponse increaseStock(@PathVariable Long shopId,
             @PathVariable Long stockId, @RequestParam Integer amount){
-        return shopStockService.increaseStock(shopId,stockId,amount);
+        return new ShopStockResponse(shopStockService.increaseStock(shopId,stockId,amount));
     }
 
     @PostMapping("{stockId}/decrease")
-    public ShopStock decreaseStock(@PathVariable Long shopId,
+    public ShopStockResponse decreaseStock(@PathVariable Long shopId,
             @PathVariable Long stockId, @RequestParam Integer amount){
-        return shopStockService.decreaseStock(shopId,stockId,amount);
+        return new ShopStockResponse(shopStockService.decreaseStock(shopId,stockId,amount));
     }
 
     @DeleteMapping("{stockId}")

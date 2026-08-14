@@ -1,5 +1,7 @@
 package com.toy.game_shop.controller;
 
+import com.toy.game_shop.dto.purchase.PurchaseRequest;
+import com.toy.game_shop.dto.transaction.TransactionResponse;
 import com.toy.game_shop.entity.Item;
 import com.toy.game_shop.entity.Player;
 import com.toy.game_shop.entity.Shop;
@@ -8,9 +10,7 @@ import com.toy.game_shop.service.ItemService;
 import com.toy.game_shop.service.PlayerService;
 import com.toy.game_shop.service.PurchaseService;
 import com.toy.game_shop.service.ShopService;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,22 +27,13 @@ public class PurchaseController {
     private final ItemService itemService;
 
     @PostMapping
-    public Transaction purchase(@PathVariable Long playerId,
+    public TransactionResponse purchase(@PathVariable Long playerId,
                                  @RequestBody PurchaseRequest request){
         Player player = playerService.findById(playerId);
         Shop shop = shopService.findById(request.getShopId());
         Item item = itemService.findById(request.getItemId());
 
-        return purchaseService.purchase(player, shop, item, request.getQuantity());
+        Transaction transaction = purchaseService.purchase(player, shop, item, request.getQuantity());
+        return new TransactionResponse(transaction);
     }
-
-
-    @Getter
-    @Setter
-    public static class PurchaseRequest {
-        private Long shopId;
-        private Long itemId;
-        private Integer quantity;
-    }
-
 }

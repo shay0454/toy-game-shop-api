@@ -53,13 +53,13 @@ public class InventoryService {
         List<InventorySlot> created = new ArrayList<>();
         int remaining = quantity;
 
-        while (remaining>0){
+        while (remaining > 0){
             int chunk = Math.min(remaining,MAX_STACK);
             InventorySlot slot = newSlot(player,item);
             slot.setQuantity(chunk);
             created.add(slot);
 
-            remaining -=chunk;
+            remaining -= chunk;
         }
 
         int currentSlotCount = inventorySlotRepository.findByPlayerId(player.getId()).size();

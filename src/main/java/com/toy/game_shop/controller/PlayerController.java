@@ -1,7 +1,10 @@
 package com.toy.game_shop.controller;
 
+import com.toy.game_shop.dto.player.PlayerCreateRequest;
+import com.toy.game_shop.dto.player.PlayerListResponse;
+import com.toy.game_shop.dto.player.PlayerResponse;
 import com.toy.game_shop.entity.Player;
-import com.toy.game_shop.patchRequest.PlayerPatchRequest;
+import com.toy.game_shop.dto.player.PlayerPatchRequest;
 import com.toy.game_shop.service.PlayerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,20 +22,31 @@ public class PlayerController {
     private final PlayerService playerService;
 
     @GetMapping
-    public List<Player> findAll(){ return playerService.findAll();}
+    public PlayerListResponse findAll(){
+        List<Player> players = playerService.findAll();
+        return new PlayerListResponse(players);
+    }
 
     @GetMapping("{id}")
-    public Player findById(@PathVariable Long id){
-        return playerService.findById(id);
+    public PlayerResponse findById(@PathVariable Long id){
+
+        return new PlayerResponse(playerService.findById(id));
     }
 
     @GetMapping("nickname/{name}")
-    public Player findByNickname(@PathVariable String name){
-        return playerService.findByNickname(name);
+    public PlayerResponse findByNickname(@PathVariable String name){
+        return new PlayerResponse(playerService.findByNickname(name));
     }
 
     @PostMapping
-    public ResponseEntity<Player> addPlayer(@RequestBody @Valid Player player){
+    public ResponseEntity<PlayerResponse> addPlayer(
+            @RequestBody @Valid PlayerCreateRequest request){
+
+        Player player = Player.builder()
+                .nickname(request.getNickname())
+                .gold(request.getGold())
+                .build();
+
         Player savedPlayer = playerService.addPlayer(player);
 
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
@@ -40,25 +54,26 @@ public class PlayerController {
                 .buildAndExpand(savedPlayer.getId())
                 .toUri();
 
-        return ResponseEntity.created(location).build();
+        return ResponseEntity.created(location).body(new PlayerResponse(savedPlayer));
     }
 
     @PatchMapping("{id}")
-    public ResponseEntity<Player> updatePlayer(@PathVariable Long id, @RequestBody
+    public ResponseEntity<PlayerResponse> updatePlayer(@PathVariable Long id, @RequestBody
                                             PlayerPatchRequest request){
-        return ResponseEntity.ok(playerService.updatePlayer(id,request));
+        Player updated = playerService.updatePlayer(id,request);
+        return ResponseEntity.ok(new PlayerResponse(updated));
     }
 
     @PatchMapping("nickname/{name}")
-    public ResponseEntity<Player> updatePlayer(@PathVariable String name, @RequestBody
+    public ResponseEntity<PlayerResponse> updatePlayer(@PathVariable String name, @RequestBody
                                                PlayerPatchRequest request){
-        return ResponseEntity.ok(playerService.updatePlayer(name,request));
+        Player updated = playerService.updatePlayer(name,request);
+        return ResponseEntity.ok(new PlayerResponse(updated));
     }
 
     @DeleteMapping("{id}")
-    public ResponseEntity<Player> deletePlayer(@PathVariable Long id){
+    public ResponseEntity<Void> deletePlayer(@PathVariable Long id){
         playerService.deletePlayerById(id);
         return ResponseEntity.noContent().build();
     }
-
 }

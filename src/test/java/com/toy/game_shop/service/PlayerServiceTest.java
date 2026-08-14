@@ -1,7 +1,7 @@
 package com.toy.game_shop.service;
 
 import com.toy.game_shop.entity.Player;
-import com.toy.game_shop.patchRequest.PlayerPatchRequest;
+import com.toy.game_shop.dto.player.PlayerPatchRequest;
 import com.toy.game_shop.repository.PlayerRepository;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
