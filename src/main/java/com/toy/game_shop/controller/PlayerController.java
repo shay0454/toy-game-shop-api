@@ -58,14 +58,14 @@ public class PlayerController {
     }
 
     @PatchMapping("{id}")
-    public ResponseEntity<PlayerResponse> updatePlayer(@PathVariable Long id, @RequestBody
+    public ResponseEntity<PlayerResponse> updatePlayer(@PathVariable Long id, @RequestBody @Valid
                                             PlayerPatchRequest request){
         Player updated = playerService.updatePlayer(id,request);
         return ResponseEntity.ok(new PlayerResponse(updated));
     }
 
     @PatchMapping("nickname/{name}")
-    public ResponseEntity<PlayerResponse> updatePlayer(@PathVariable String name, @RequestBody
+    public ResponseEntity<PlayerResponse> updatePlayer(@PathVariable String name, @RequestBody @Valid
                                                PlayerPatchRequest request){
         Player updated = playerService.updatePlayer(name,request);
         return ResponseEntity.ok(new PlayerResponse(updated));

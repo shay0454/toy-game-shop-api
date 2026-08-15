@@ -56,7 +56,7 @@ ShopController {
     }
 
     @PatchMapping("{id}")
-    public ResponseEntity<ShopResponse> updateShop(@PathVariable Long id, @RequestBody ShopPatchRequest request){
+    public ResponseEntity<ShopResponse> updateShop(@PathVariable Long id, @RequestBody @Valid ShopPatchRequest request){
         Shop updated = shopService.updateShop(id, request);
         return ResponseEntity.ok(new ShopResponse(updated));
     }

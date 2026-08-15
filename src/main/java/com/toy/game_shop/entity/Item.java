@@ -2,7 +2,7 @@ package com.toy.game_shop.entity;
 
 import com.toy.game_shop.type.ItemType;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
@@ -18,7 +18,7 @@ public class Item {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
+    @NotBlank(message = "Item명 입력")
     @Size(min = 1, message = "Item명 입력")
     @Column(unique = true, nullable = false)
     private String name;
