@@ -3,6 +3,7 @@ package com.toy.game_shop.service;
 import com.toy.game_shop.entity.Item;
 import com.toy.game_shop.dto.item.ItemPatchRequest;
 import com.toy.game_shop.type.ItemType;
+import jakarta.validation.ConstraintViolationException;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -111,6 +112,33 @@ class ItemServiceTest {
     }
 
     @Test
+    @DisplayName("maxStack 미지정 시 기본값 99 확인")
+    void addItemMaxStackDefault(){
+        Item item = newItem("Sword",ItemType.WEAPON);
+
+        Item saved = itemService.addItem(item);
+        Assertions.assertThat(saved.getMaxStack()).isEqualTo(99);
+    }
+
+    @Test
+    @DisplayName("maxStack 지정 시 그 값 저장 확인")
+    void addItemMaxStackExplicit(){
+        Item item = Item.builder().name("Potion").type(ItemType.CONSUMABLE).maxStack(5).build();
+
+        Item saved = itemService.addItem(item);
+        Assertions.assertThat(saved.getMaxStack()).isEqualTo(5);
+    }
+
+    @Test
+    @DisplayName("maxStack 0 이하일 시 예외 확인")
+    void addItemMaxStackInvalid(){
+        Item item = Item.builder().name("Potion").type(ItemType.CONSUMABLE).maxStack(0).build();
+
+        Assertions.assertThatThrownBy(()->itemService.addItem(item))
+                .isInstanceOf(ConstraintViolationException.class);
+    }
+
+    @Test
     @DisplayName("패치 적용 확인")
     void updateItemById(){
         Item item = newItem("Sword",ItemType.WEAPON);
@@ -124,6 +152,34 @@ class ItemServiceTest {
 
         Assertions.assertThat(updated.getName()).isEqualTo("Long Sword");
         Assertions.assertThat(updated.getType()).isEqualTo(ItemType.ARMOR);
+    }
+
+    @Test
+    @DisplayName("패치로 maxStack 변경 확인")
+    void updateItemMaxStack(){
+        Item item = newItem("Sword",ItemType.WEAPON);
+        Item saved = itemService.addItem(item);
+
+        ItemPatchRequest request = new ItemPatchRequest();
+        request.setMaxStack(10);
+
+        Item updated = itemService.updateItem(saved.getId(),request);
+
+        Assertions.assertThat(updated.getMaxStack()).isEqualTo(10);
+    }
+
+    @Test
+    @DisplayName("패치에 maxStack 없으면 기존 값 유지 확인")
+    void updateItemMaxStackKeepsExistingWhenNull(){
+        Item item = Item.builder().name("Sword").type(ItemType.WEAPON).maxStack(10).build();
+        Item saved = itemService.addItem(item);
+
+        ItemPatchRequest request = new ItemPatchRequest();
+        request.setName("Long Sword");
+
+        Item updated = itemService.updateItem(saved.getId(),request);
+
+        Assertions.assertThat(updated.getMaxStack()).isEqualTo(10);
     }
 
     @Test

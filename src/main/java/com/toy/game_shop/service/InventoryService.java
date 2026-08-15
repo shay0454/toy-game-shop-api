@@ -18,9 +18,6 @@ import java.util.Optional;
 public class InventoryService {
     private final InventorySlotRepository inventorySlotRepository;
 
-    // TODO: 추후 Item별 maxStack 필드로 관리하도록 변경 검토
-    private static final int MAX_STACK = 99;
-
     // TODO: 임의로 설정한 값, 추후 조정 검토
     private static final int MAX_SLOTS = 60;
 
@@ -54,7 +51,7 @@ public class InventoryService {
         int remaining = quantity;
 
         while (remaining > 0){
-            int chunk = Math.min(remaining,MAX_STACK);
+            int chunk = Math.min(remaining, item.getMaxStack());
             InventorySlot slot = newSlot(player,item);
             slot.setQuantity(chunk);
             created.add(slot);
@@ -80,7 +77,7 @@ public class InventoryService {
 
         // 해당 아이템이 이미 인벤에 있는 아이템인지 탐색
         Optional<InventorySlot> target = slots.stream()
-                .filter(slot -> slot.getQuantity() < MAX_STACK)
+                .filter(slot -> slot.getQuantity() < item.getMaxStack())
                 .findFirst();
 
         // 아이템이 없거나, 최대 수량 상태로만 있으면 추가
@@ -92,9 +89,9 @@ public class InventoryService {
         InventorySlot inventorySlot = target.get();
         int total = inventorySlot.getQuantity() + amount;
 
-        if(total > MAX_STACK){
-            int overflow = total - MAX_STACK;
-            inventorySlot.setQuantity(MAX_STACK);
+        if(total > item.getMaxStack()){
+            int overflow = total - item.getMaxStack();
+            inventorySlot.setQuantity(item.getMaxStack());
             inventorySlotRepository.save(inventorySlot);
 
             List<InventorySlot> result = new ArrayList<>();
@@ -168,7 +165,7 @@ public class InventoryService {
         }
 
         int total = to.getQuantity() + from.getQuantity();
-        int merged = Math.min(total,MAX_STACK);
+        int merged = Math.min(total,from.getItem().getMaxStack());
         int leftover = total - merged;
 
         to.setQuantity(merged);

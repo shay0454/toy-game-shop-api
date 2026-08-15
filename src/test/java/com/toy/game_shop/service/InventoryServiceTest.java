@@ -102,6 +102,18 @@ class InventoryServiceTest {
     }
 
     @Test
+    @DisplayName("아이템별 maxStack 기준으로 슬롯 분할 확인")
+    void createSlotsRespectsItemMaxStack(){
+        Item stackable5 = itemRepository.save(Item.builder().name("Arrow").type(ItemType.CONSUMABLE).maxStack(5).build());
+
+        List<InventorySlot> slots = inventoryService.createSlots(player, stackable5, 12);
+
+        Assertions.assertThat(slots.size()).isEqualTo(3);
+        Assertions.assertThat(slots).extracting(InventorySlot::getQuantity)
+                .containsExactlyInAnyOrder(5, 5, 2);
+    }
+
+    @Test
     @DisplayName("생성 수량 0 이하 시 예외 확인")
     void createSlotsNonPositive(){
         Assertions.assertThatThrownBy(()->inventoryService.createSlots(player, item, 0))
@@ -160,6 +172,19 @@ class InventoryServiceTest {
 
         Assertions.assertThat(result.size()).isEqualTo(1);
         Assertions.assertThat(result.get(0).getQuantity()).isEqualTo(5);
+    }
+
+    @Test
+    @DisplayName("아이템별 maxStack 기준으로 오버플로우 확인")
+    void addQuantityRespectsItemMaxStack(){
+        Item stackable5 = itemRepository.save(Item.builder().name("Arrow").type(ItemType.CONSUMABLE).maxStack(5).build());
+        inventoryService.createSlots(player, stackable5, 3);
+
+        List<InventorySlot> result = inventoryService.addQuantity(player, stackable5, 4);
+
+        Assertions.assertThat(result.size()).isEqualTo(2);
+        Assertions.assertThat(result).extracting(InventorySlot::getQuantity)
+                .containsExactlyInAnyOrder(5, 2);
     }
 
     @Test
@@ -246,6 +271,22 @@ class InventoryServiceTest {
 
         Assertions.assertThat(updatedTo.getQuantity()).isEqualTo(99);
         Assertions.assertThat(updatedFrom.getQuantity()).isEqualTo(11);
+    }
+
+    @Test
+    @DisplayName("머지 시 아이템별 maxStack 기준으로 캡 확인")
+    void mergeSlotRespectsItemMaxStack(){
+        Item stackable5 = itemRepository.save(Item.builder().name("Arrow").type(ItemType.CONSUMABLE).maxStack(5).build());
+        InventorySlot to = inventoryService.createSlots(player, stackable5, 4).get(0);
+        InventorySlot from = inventoryService.createSlots(player, stackable5, 3).get(0);
+
+        inventoryService.mergeSlot(from.getId(), to.getId());
+
+        InventorySlot updatedTo = inventoryService.findBySlotId(to.getId());
+        InventorySlot updatedFrom = inventoryService.findBySlotId(from.getId());
+
+        Assertions.assertThat(updatedTo.getQuantity()).isEqualTo(5);
+        Assertions.assertThat(updatedFrom.getQuantity()).isEqualTo(2);
     }
 
     @Test

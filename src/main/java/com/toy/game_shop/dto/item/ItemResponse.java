@@ -6,17 +6,19 @@ import com.toy.game_shop.type.ItemType;
 import lombok.Getter;
 
 @Getter
-@JsonPropertyOrder({"id","name","type","description"})
+@JsonPropertyOrder({"id","name","type","description","maxStack"})
 public class ItemResponse {
     private final Long id;
     private final String name;
     private final ItemType type;
     private final String description;
+    private final Integer maxStack;
 
     public ItemResponse(Item item){
         this.id = item.getId();
         this.name = item.getName();
         this.type = item.getType();
         this.description = item.getDescription();
+        this.maxStack = item.getMaxStack();
     }
 }

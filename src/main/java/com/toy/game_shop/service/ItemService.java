@@ -34,6 +34,9 @@ public class ItemService {
         if(item.getType()==null){
             item.setType(ItemType.NONE);
         }
+        if(item.getMaxStack()==null){
+            item.setMaxStack(99);
+        }
 
         return it.save(item);
     }
@@ -52,6 +55,7 @@ public class ItemService {
 
         if(request.getName()!=null) item.setName(request.getName());
         if(request.getType()!=null) item.setType(request.getType());
+        if(request.getMaxStack()!=null) item.setMaxStack(request.getMaxStack());
 
         return it.save(item);
     }

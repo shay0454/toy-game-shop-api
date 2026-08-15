@@ -55,6 +55,7 @@ public class ItemController {
                 .name(request.getName())
                 .type(request.getType())
                 .description(request.getDescription())
+                .maxStack(request.getMaxStack())
                 .build();
 
         Item savedItem = itemService.addItem(item);

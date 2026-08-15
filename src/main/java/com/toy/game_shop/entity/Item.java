@@ -2,6 +2,7 @@ package com.toy.game_shop.entity;
 
 import com.toy.game_shop.type.ItemType;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
@@ -29,4 +30,8 @@ public class Item {
 
     @Size(max = 500)
     private String description;
+
+    @Builder.Default
+    @Min(1)
+    private Integer maxStack = 99;
 }
