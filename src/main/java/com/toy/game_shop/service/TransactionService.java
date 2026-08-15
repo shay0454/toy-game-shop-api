@@ -16,7 +16,7 @@ public class TransactionService {
     private final TransactionRepository transactionRepository;
 
     public List<Transaction> findAllTransactions(){
-        return transactionRepository.findAll();
+        return transactionRepository.findAllWithDetails();
     }
 
     public List<Transaction> findTransactionsByPlayer(Player player){
