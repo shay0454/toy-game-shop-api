@@ -28,6 +28,11 @@ public class ShopService {
                 .orElseThrow(()->new NoSuchElementException("Shop not found"));
     }
 
+    public Shop findByIdWithDetail(Long id){
+        return shopRepository.findByIdWithStocks(id)
+                .orElseThrow(()->new NoSuchElementException("Shop not found"));
+    }
+
     public Shop addShop(Shop shop){
         return shopRepository.save(shop);
     }

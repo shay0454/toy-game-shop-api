@@ -1,10 +1,7 @@
 package com.toy.game_shop.controller;
 
-import com.toy.game_shop.dto.shop.ShopCreateRequest;
-import com.toy.game_shop.dto.shop.ShopListResponse;
-import com.toy.game_shop.dto.shop.ShopResponse;
+import com.toy.game_shop.dto.shop.*;
 import com.toy.game_shop.entity.Shop;
-import com.toy.game_shop.dto.shop.ShopPatchRequest;
 import com.toy.game_shop.service.ShopService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +34,11 @@ ShopController {
     public ShopResponse findByName(@PathVariable String name){
 
         return new ShopResponse(shopService.findByName(name));
+    }
+
+    @GetMapping("{id}/detail")
+    public ShopDetailResponse findByIdWithDetails(@PathVariable Long id){
+        return new ShopDetailResponse(shopService.findByIdWithDetail(id));
     }
 
     @PostMapping
