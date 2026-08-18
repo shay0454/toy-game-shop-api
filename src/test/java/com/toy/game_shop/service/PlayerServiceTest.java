@@ -150,4 +150,49 @@ class PlayerServiceTest {
         Assertions.assertThatThrownBy(()->playerService.findById(player.getId()))
                 .isInstanceOf(NoSuchElementException.class);
     }
+
+    @Test
+    @DisplayName("골드 정상 차감 확인")
+    void spendGold() {
+        Player player = playerService.addPlayer(newPlayer("test1",100L));
+
+        Player updated = playerService.spendGold(player.getId(), 40L);
+
+        Assertions.assertThat(updated.getGold()).isEqualTo(60L);
+    }
+
+    @Test
+    @DisplayName("정확히 0까지 차감 확인")
+    void spendGoldExact() {
+        Player player = playerService.addPlayer(newPlayer("test1",50L));
+
+        Player updated = playerService.spendGold(player.getId(), 50L);
+
+        Assertions.assertThat(updated.getGold()).isEqualTo(0L);
+    }
+
+    @Test
+    @DisplayName("차감액 0 이하 시 예외 확인")
+    void spendGoldNonPositive() {
+        Player player = playerService.addPlayer(newPlayer("test1",50L));
+
+        Assertions.assertThatThrownBy(()->playerService.spendGold(player.getId(), 0L))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    @DisplayName("골드 부족 시 예외 확인")
+    void spendGoldInsufficient() {
+        Player player = playerService.addPlayer(newPlayer("test1",30L));
+
+        Assertions.assertThatThrownBy(()->playerService.spendGold(player.getId(), 50L))
+                .isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    @DisplayName("미존재 player 골드 차감 시 예외 확인")
+    void spendGoldNonId() {
+        Assertions.assertThatThrownBy(()->playerService.spendGold(-1L, 10L))
+                .isInstanceOf(NoSuchElementException.class);
+    }
 }
