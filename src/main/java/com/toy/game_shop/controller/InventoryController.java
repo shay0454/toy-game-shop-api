@@ -1,7 +1,7 @@
 package com.toy.game_shop.controller;
 
 import com.toy.game_shop.dto.inventory.SlotOrderByPlayerResponse;
-import com.toy.game_shop.dto.inventory.InventorySlotResponse;
+import com.toy.game_shop.dto.inventory.InventorySlotEntryResponse;
 import com.toy.game_shop.dto.inventory.PositionRequest;
 import com.toy.game_shop.dto.inventory.SlotPosition;
 import com.toy.game_shop.entity.InventorySlot;
@@ -50,17 +50,17 @@ public class InventoryController {
     }
 
     @PostMapping("/slot/{slotId}/split")
-    public InventorySlotResponse splitSlot(@PathVariable Long playerId,
+    public InventorySlotEntryResponse splitSlot(@PathVariable Long playerId,
                                    @PathVariable Long slotId,
                                    @RequestParam Integer amount){
-        return new InventorySlotResponse(inventoryService.splitSlot(slotId, amount));
+        return new InventorySlotEntryResponse(inventoryService.splitSlot(slotId, amount));
     }
 
     @PatchMapping("/slot/{slotId}/position")
-    public InventorySlotResponse moveSlot(@PathVariable Long slotId,
+    public InventorySlotEntryResponse moveSlot(@PathVariable Long slotId,
                                           @RequestBody @Valid PositionRequest request){
         InventorySlot slot = inventoryService.moveSlot(slotId, new SlotPosition(request.getRow(), request.getCol()));
-        return new InventorySlotResponse(slot);
+        return new InventorySlotEntryResponse(slot);
     }
 
     @DeleteMapping("/{itemId}")
