@@ -1,13 +1,16 @@
 package com.toy.game_shop.controller;
 
-import com.toy.game_shop.dto.inventory.InventorySlotListResponse;
+import com.toy.game_shop.dto.inventory.SlotOrderByPlayerResponse;
 import com.toy.game_shop.dto.inventory.InventorySlotResponse;
+import com.toy.game_shop.dto.inventory.PositionRequest;
+import com.toy.game_shop.dto.inventory.SlotPosition;
 import com.toy.game_shop.entity.InventorySlot;
 import com.toy.game_shop.entity.Item;
 import com.toy.game_shop.entity.Player;
 import com.toy.game_shop.service.InventoryService;
 import com.toy.game_shop.service.ItemService;
 import com.toy.game_shop.service.PlayerService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,18 +26,19 @@ public class InventoryController {
     private final ItemService itemService;
 
     @GetMapping
-    public InventorySlotListResponse findByPlayer(@PathVariable Long playerId){
+    public SlotOrderByPlayerResponse findByPlayer(@PathVariable Long playerId){
+        Player player = playerService.findById(playerId);
         List<InventorySlot> slots = inventoryService.findByPlayerId(playerId);
-        return new InventorySlotListResponse(slots);
+        return new SlotOrderByPlayerResponse(player, slots);
     }
 
     @PostMapping("/{itemId}")
-    public InventorySlotListResponse addQuantity(@PathVariable Long playerId, @PathVariable
+    public SlotOrderByPlayerResponse addQuantity(@PathVariable Long playerId, @PathVariable
                                      Long itemId, @RequestParam Integer amount){
         Player player = playerService.findById(playerId);
         Item item = itemService.findById(itemId);
         List<InventorySlot> slots = inventoryService.addQuantity(player,item,amount);
-        return new InventorySlotListResponse(slots);
+        return new SlotOrderByPlayerResponse(player, slots);
     }
 
     @PostMapping("/slot/{fromSlotId}/merge/{toSlotId}")
@@ -52,6 +56,13 @@ public class InventoryController {
         return new InventorySlotResponse(inventoryService.splitSlot(slotId, amount));
     }
 
+    @PatchMapping("/slot/{slotId}/position")
+    public InventorySlotResponse moveSlot(@PathVariable Long slotId,
+                                          @RequestBody @Valid PositionRequest request){
+        InventorySlot slot = inventoryService.moveSlot(slotId, new SlotPosition(request.getRow(), request.getCol()));
+        return new InventorySlotResponse(slot);
+    }
+
     @DeleteMapping("/{itemId}")
     public ResponseEntity<Void> removeQuantity(@PathVariable Long playerId, @PathVariable
                                         Long itemId, @RequestParam Integer amount){
@@ -60,6 +71,7 @@ public class InventoryController {
         inventoryService.removeQuantity(player,item,amount);
         return ResponseEntity.noContent().build();
     }
+
 
     @DeleteMapping("/slot/{slotId}")
     public ResponseEntity<Void> deleteBySoltId(@PathVariable Long playerId,
