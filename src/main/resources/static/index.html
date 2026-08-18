@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Game Shop</title>
+<style>
+  :root {
+    --bg: #1b1f27;
+    --panel: #242833;
+    --panel-2: #2c313d;
+    --border: #3a4050;
+    --text: #e6e8ec;
+    --text-dim: #9aa0ac;
+    --gold: #e2b93b;
+    --accent: #5b8cff;
+    --danger: #e05c5c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding: 20px;
+  }
+  h1 { font-size: 1.4rem; margin: 0 0 16px; }
+  h2 { font-size: 1.05rem; margin: 0 0 10px; color: var(--text); }
+  .topbar {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 16px; margin-bottom: 18px;
+  }
+  .gold-badge {
+    margin-left: auto; background: var(--panel-2); border: 1px solid var(--gold);
+    color: var(--gold); padding: 6px 14px; border-radius: 20px; font-weight: 600;
+  }
+  select, input, button {
+    background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
+    border-radius: 6px; padding: 6px 8px; font-size: 0.9rem;
+  }
+  button { cursor: pointer; }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  button.danger { background: var(--danger); border-color: var(--danger); color: #fff; }
+  .layout { display: grid; grid-template-columns: 1.1fr 1fr; gap: 18px; }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+  .panel {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px;
+  }
+  .shop-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px;
+  }
+  .item-card {
+    background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px; display: flex; flex-direction: column; gap: 6px;
+  }
+  .item-card .icon { font-size: 1.6rem; }
+  .item-card .name { font-weight: 600; font-size: 0.95rem; }
+  .item-card .meta { font-size: 0.78rem; color: var(--text-dim); }
+  .item-card .price { color: var(--gold); font-weight: 600; }
+  .buy-row { display: flex; gap: 4px; margin-top: 4px; }
+  .buy-row input { width: 48px; }
+  .inv-grid {
+    display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px;
+  }
+  .slot {
+    aspect-ratio: 1; background: var(--panel-2); border: 1px solid var(--border); border-radius: 6px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-size: 0.65rem; cursor: default; position: relative;
+  }
+  .slot.filled { cursor: pointer; border-color: var(--accent); }
+  .slot.filled:hover { background: #333a4a; }
+  .slot.dragging { opacity: 0.4; }
+  .slot.drag-over { outline: 2px dashed var(--gold); }
+  .slot.selected { outline: 2px solid var(--gold); }
+  .slot .qty { position: absolute; bottom: 2px; right: 3px; font-size: 0.62rem; color: var(--gold); }
+  .slot .icon { font-size: 1.1rem; }
+  .action-panel {
+    margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border);
+    font-size: 0.85rem;
+  }
+  .action-panel .row { display: flex; gap: 6px; align-items: center; margin-top: 6px; flex-wrap: wrap; }
+  .action-panel input { width: 60px; }
+  .form-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .error { color: var(--danger); font-size: 0.82rem; margin-top: 6px; }
+  .tx-list { max-height: 220px; overflow-y: auto; font-size: 0.82rem; }
+  .tx-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid var(--border); }
+  .tx-row .who { color: var(--text-dim); }
+  .badge { display: inline-block; padding: 1px 6px; border-radius: 10px; background: var(--panel); font-size: 0.68rem; border: 1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<h1>🎮 Game Shop</h1>
+
+<div class="topbar">
+  <label>Player</label>
+  <select id="playerSelect" onchange="onSelectPlayer()"></select>
+  <input id="newNickname" placeholder="새 닉네임" style="width:110px">
+  <button onclick="createPlayer()">+ 생성</button>
+  <span class="gold-badge">💰 <span id="goldDisplay">-</span></span>
+</div>
+<div id="topError" class="error"></div>
+
+<div class="layout">
+  <div class="panel">
+    <h2>🏪 Shop</h2>
+    <div id="shopContainer"></div>
+  </div>
+
+  <div class="panel">
+    <h2>🎒 Inventory</h2>
+    <div id="invGrid" class="inv-grid"></div>
+    <div id="actionPanel" class="action-panel" style="display:none"></div>
+  </div>
+</div>
+
+<div class="panel" style="margin-top:18px">
+  <h2>🧾 Transactions</h2>
+  <div id="txList" class="tx-list"></div>
+</div>
+
+<script>
+const ICONS = { WEAPON: '⚔️', ARMOR: '🛡️', CONSUMABLE: '🧪', MATERIAL: '🪵', NONE: '❔' };
+const ROWS = 6, COLS = 10;
+
+const state = { players: [], currentPlayerId: null, inventory: null, selectedSlotId: null };
+
+async function api(url, options){
+  const res = await fetch(url, options);
+  const text = await res.text();
+  const data = text ? JSON.parse(text) : null;
+  if(!res.ok){
+    throw new Error((data && data.message) ? data.message : `요청 실패 (${res.status})`);
+  }
+  return data;
+}
+
+function icon(type){ return ICONS[type] || ICONS.NONE; }
+
+async function loadPlayers(){
+  const data = await api('/players');
+  state.players = data.players;
+  const select = document.getElementById('playerSelect');
+  select.innerHTML = state.players.map(p => `<option value="${p.id}">${p.nickname} (#${p.id})</option>`).join('');
+  if(state.players.length){
+    if(!state.currentPlayerId || !state.players.some(p => p.id === state.currentPlayerId)){
+      state.currentPlayerId = state.players[0].id;
+    }
+    select.value = state.currentPlayerId;
+    updateGoldDisplay();
+  }
+}
+
+function updateGoldDisplay(){
+  const player = state.players.find(p => p.id === state.currentPlayerId);
+  document.getElementById('goldDisplay').textContent = player ? player.gold : '-';
+}
+
+function onSelectPlayer(){
+  state.currentPlayerId = Number(document.getElementById('playerSelect').value);
+  updateGoldDisplay();
+  clearSelection();
+  loadInventory();
+}
+
+async function createPlayer(){
+  const errorEl = document.getElementById('topError');
+  errorEl.textContent = '';
+  const nickname = document.getElementById('newNickname').value.trim();
+  if(!nickname){ errorEl.textContent = '닉네임을 입력해주세요.'; return; }
+  try {
+    const created = await api('/players', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nickname })
+    });
+    document.getElementById('newNickname').value = '';
+    await loadPlayers();
+    state.currentPlayerId = created.id;
+    document.getElementById('playerSelect').value = created.id;
+    updateGoldDisplay();
+    loadInventory();
+  } catch(e){
+    errorEl.textContent = e.message;
+  }
+}
+
+async function loadShops(){
+  const data = await api('/shops');
+  const container = document.getElementById('shopContainer');
+  container.innerHTML = '';
+  for(const shop of data.shops){
+    const detail = await api(`/shops/${shop.id}/detail`);
+    const section = document.createElement('div');
+    section.innerHTML = `<div style="font-weight:600;margin:8px 0">${detail.name}</div>`;
+    const grid = document.createElement('div');
+    grid.className = 'shop-grid';
+    grid.innerHTML = detail.items.map(it => `
+      <div class="item-card">
+        <div class="icon">${icon(it.type)}</div>
+        <div class="name">${it.name}</div>
+        <div class="meta">${it.type} · 재고 ${it.stock}</div>
+        <div class="price">${it.price} G</div>
+        <div class="buy-row">
+          <input type="number" min="1" value="1" id="qty-${shop.id}-${it.id}">
+          <button class="primary" onclick="purchase(${shop.id}, ${it.id})">구매</button>
+        </div>
+      </div>
+    `).join('');
+    section.appendChild(grid);
+    container.appendChild(section);
+  }
+}
+
+async function purchase(shopId, itemId){
+  const errorEl = document.getElementById('topError');
+  errorEl.textContent = '';
+  if(!state.currentPlayerId){ errorEl.textContent = '플레이어를 선택해주세요.'; return; }
+  const quantity = Number(document.getElementById(`qty-${shopId}-${itemId}`).value);
+  try {
+    await api(`/players/${state.currentPlayerId}/purchase`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ shopId, itemId, quantity })
+    });
+    await loadPlayers();
+    await loadShops();
+    await loadInventory();
+    await loadTransactions();
+  } catch(e){
+    errorEl.textContent = e.message;
+  }
+}
+
+async function loadInventory(){
+  const grid = document.getElementById('invGrid');
+  grid.innerHTML = '';
+  clearSelection();
+  if(!state.currentPlayerId) return;
+
+  const data = await api(`/players/${state.currentPlayerId}/inventory`);
+  state.inventory = data;
+  const bySlot = {};
+  data.slots.forEach(s => { bySlot[`${s.position.row}-${s.position.col}`] = s; });
+
+  for(let row = 1; row <= ROWS; row++){
+    for(let col = 1; col <= COLS; col++){
+      const slot = bySlot[`${row}-${col}`];
+      const cell = document.createElement('div');
+      cell.className = 'slot' + (slot ? ' filled' : '');
+
+      if(slot){
+        cell.innerHTML = `<div class="icon">📦</div><div class="qty">${slot.quantity}</div>`;
+        cell.title = `${slot.itemName} x${slot.quantity} (id:${slot.id}) — Shift+클릭: split, 드래그: 이동/합치기`;
+        cell.draggable = true;
+
+        cell.addEventListener('click', (e) => {
+          if(e.shiftKey){
+            quickSplit(slot);
+          } else {
+            selectSlot(slot, cell);
+          }
+        });
+        cell.addEventListener('dragstart', (e) => {
+          e.dataTransfer.setData('text/plain', String(slot.id));
+          cell.classList.add('dragging');
+        });
+        cell.addEventListener('dragend', () => cell.classList.remove('dragging'));
+      }
+
+      cell.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        cell.classList.add('drag-over');
+      });
+      cell.addEventListener('dragleave', () => cell.classList.remove('drag-over'));
+      cell.addEventListener('drop', (e) => {
+        e.preventDefault();
+        cell.classList.remove('drag-over');
+        const draggedSlotId = Number(e.dataTransfer.getData('text/plain'));
+        handleSlotDrop(draggedSlotId, slot, row, col);
+      });
+
+      grid.appendChild(cell);
+    }
+  }
+}
+
+async function handleSlotDrop(draggedSlotId, targetSlot, targetRow, targetCol){
+  document.getElementById('topError').textContent = '';
+  if(!draggedSlotId) return;
+  if(targetSlot && targetSlot.id === draggedSlotId) return;
+
+  try {
+    if(targetSlot){
+      await api(`/players/${state.currentPlayerId}/inventory/slot/${draggedSlotId}/merge/${targetSlot.id}`, { method: 'POST' });
+    } else {
+      await api(`/players/${state.currentPlayerId}/inventory/slot/${draggedSlotId}/position`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ row: targetRow, col: targetCol })
+      });
+    }
+    await loadInventory();
+  } catch(e){
+    document.getElementById('topError').textContent = e.message;
+  }
+}
+
+async function quickSplit(slot){
+  const input = prompt(`${slot.itemName} 몇 개 분할할까요? (현재 ${slot.quantity}개)`, '1');
+  if(input === null) return;
+  const amount = Number(input);
+  if(!amount || amount <= 0) return;
+
+  document.getElementById('topError').textContent = '';
+  try {
+    await api(`/players/${state.currentPlayerId}/inventory/slot/${slot.id}/split?amount=${amount}`, { method: 'POST' });
+    await loadInventory();
+  } catch(e){
+    document.getElementById('topError').textContent = e.message;
+  }
+}
+
+function clearSelection(){
+  state.selectedSlotId = null;
+  document.getElementById('actionPanel').style.display = 'none';
+}
+
+function selectSlot(slot, cellEl){
+  document.querySelectorAll('.slot.selected').forEach(el => el.classList.remove('selected'));
+  cellEl.classList.add('selected');
+  state.selectedSlotId = slot.id;
+
+  const panel = document.getElementById('actionPanel');
+  panel.style.display = 'block';
+  panel.innerHTML = `
+    <div><strong>${slot.itemName}</strong> x${slot.quantity} — 위치 (${slot.position.row}, ${slot.position.col}) · slotId ${slot.id}</div>
+    <div class="row">
+      분할: <input type="number" id="splitAmount" min="1" value="1">
+      <button onclick="doSplit(${slot.id})">Split</button>
+    </div>
+    <div class="row">
+      이동: row <input type="number" id="moveRow" min="1" max="${ROWS}" value="${slot.position.row}">
+      col <input type="number" id="moveCol" min="1" max="${COLS}" value="${slot.position.col}">
+      <button onclick="doMove(${slot.id})">Move</button>
+    </div>
+    <div class="row">
+      합치기 대상 slotId: <input type="number" id="mergeTarget">
+      <button onclick="doMerge(${slot.id})">Merge</button>
+    </div>
+    <div class="row">
+      <button class="danger" onclick="doDeleteSlot(${slot.id})">이 슬롯 삭제</button>
+    </div>
+    <div id="actionError" class="error"></div>
+  `;
+}
+
+function actionError(msg){
+  document.getElementById('actionError').textContent = msg;
+}
+
+async function doSplit(slotId){
+  const amount = Number(document.getElementById('splitAmount').value);
+  try {
+    await api(`/players/${state.currentPlayerId}/inventory/slot/${slotId}/split?amount=${amount}`, { method: 'POST' });
+    await loadInventory();
+  } catch(e){ actionError(e.message); }
+}
+
+async function doMove(slotId){
+  const row = Number(document.getElementById('moveRow').value);
+  const col = Number(document.getElementById('moveCol').value);
+  try {
+    await api(`/players/${state.currentPlayerId}/inventory/slot/${slotId}/position`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ row, col })
+    });
+    await loadInventory();
+  } catch(e){ actionError(e.message); }
+}
+
+async function doMerge(fromSlotId){
+  const toSlotId = Number(document.getElementById('mergeTarget').value);
+  try {
+    await api(`/players/${state.currentPlayerId}/inventory/slot/${fromSlotId}/merge/${toSlotId}`, { method: 'POST' });
+    await loadInventory();
+  } catch(e){ actionError(e.message); }
+}
+
+async function doDeleteSlot(slotId){
+  try {
+    await api(`/players/${state.currentPlayerId}/inventory/slot/${slotId}`, { method: 'DELETE' });
+    await loadInventory();
+  } catch(e){ actionError(e.message); }
+}
+
+async function loadTransactions(){
+  const data = await api('/transactions');
+  const list = document.getElementById('txList');
+  const recent = data.transactions.slice(-20).reverse();
+  list.innerHTML = recent.map(t => `
+    <div class="tx-row">
+      <span><span class="badge">${t.itemName}</span> x${t.quantity}</span>
+      <span class="who">${t.nickname} @ ${t.shopName} · ${t.priceAtTransaction * t.quantity} G</span>
+    </div>
+  `).join('') || '<div class="who">거래 내역 없음</div>';
+}
+
+(async function init(){
+  await loadPlayers();
+  await loadShops();
+  await loadInventory();
+  await loadTransactions();
+})();
+</script>
+</body>
+</html>
