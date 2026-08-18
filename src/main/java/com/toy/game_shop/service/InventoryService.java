@@ -1,5 +1,6 @@
 package com.toy.game_shop.service;
 
+import com.toy.game_shop.dto.inventory.SlotPosition;
 import com.toy.game_shop.entity.InventorySlot;
 import com.toy.game_shop.entity.Item;
 import com.toy.game_shop.entity.Player;
@@ -8,10 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -42,11 +40,13 @@ public class InventoryService {
         inventorySlotRepository.deleteById(id);
     }
 
+    @Transactional
     public List<InventorySlot> createSlots(Player player, Item item, Integer quantity){
         if(quantity <= 0){
             throw new IllegalArgumentException("quantity는 0보다 커야 함");
         }
 
+        BitSet occupied = buildOccupiedBitSet(player.getId());
         List<InventorySlot> created = new ArrayList<>();
         int remaining = quantity;
 
@@ -54,14 +54,13 @@ public class InventoryService {
             int chunk = Math.min(remaining, item.getMaxStack());
             InventorySlot slot = newSlot(player,item);
             slot.setQuantity(chunk);
+
+            SlotPosition position = findAvailablePosition(occupied,null);
+            slot.setRow(position.row());
+            slot.setCol(position.col());
+
             created.add(slot);
-
             remaining -= chunk;
-        }
-
-        int currentSlotCount = inventorySlotRepository.findByPlayerId(player.getId()).size();
-        if(currentSlotCount + created.size() > MAX_SLOTS){
-            throw new IllegalStateException("인벤토리 칸 제한("+ MAX_SLOTS +") 초과");
         }
 
         return inventorySlotRepository.saveAll(created);
@@ -145,6 +144,25 @@ public class InventoryService {
     }
 
     @Transactional
+    public InventorySlot moveSlot(Long slotId, SlotPosition target){
+        InventorySlot slot = findBySlotId(slotId);
+
+        if(target != null && target.row() == slot.getRow() && target.col() == slot.getCol()){
+            throw new IllegalArgumentException("이미 해당 위치임");
+        }
+
+        // 해당 위치가 안 될 경우 예외 발생
+        BitSet occupied = buildOccupiedBitSet(slot.getPlayer().getId());
+        occupied.clear((slot.getRow()-1)*COLS + (slot.getCol()-1));
+        SlotPosition validated = findAvailablePosition(occupied, target);
+
+        slot.setRow(validated.row());
+        slot.setCol(validated.col());
+
+        return inventorySlotRepository.save(slot);
+    }
+
+    @Transactional
     public void mergeSlot(Long fromSlotId, Long toSlotId){
         InventorySlot from = findBySlotId(fromSlotId);
         InventorySlot to = findBySlotId(toSlotId);
@@ -200,5 +218,34 @@ public class InventoryService {
         inventorySlotRepository.deleteAll(slots);
     }
 
+    private static final int ROWS = 6;
+    private static final int COLS = 10;
 
+    private SlotPosition findAvailablePosition(BitSet occupied, SlotPosition position){
+        // row & col 지정 시, 해당 칸이 비었는지만 확인
+        if(position != null){
+            int index = (position.row()-1)*COLS + (position.col()-1);
+            if(occupied.get(index)){
+                throw new IllegalStateException("해당 칸에 이미 아이템이 존재");
+            }
+            occupied.set(index);
+            return position;
+        }
+
+        int index = occupied.nextClearBit(0);
+        if(index>= ROWS*COLS){
+            throw new IllegalStateException("인벤에 빈 칸이 없음");
+        }
+        occupied.set(index);
+        return new SlotPosition(index/COLS+1, index%COLS+1);
+    }
+
+    private BitSet buildOccupiedBitSet(Long playerId){
+        BitSet occupied = new BitSet(ROWS*COLS);
+        inventorySlotRepository.findByPlayerId(playerId)
+                .forEach(slot ->
+                        occupied.set((slot.getRow()-1)*COLS+(slot.getCol()-1)));
+
+        return occupied;
+    }
 }

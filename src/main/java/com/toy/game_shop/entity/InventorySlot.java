@@ -13,7 +13,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "inventory")
+@Table(name = "inventory", uniqueConstraints = @UniqueConstraint(columnNames = {"player_id","index_row","index_col"}))
 public class InventorySlot {
 
     @Id
@@ -34,4 +34,14 @@ public class InventorySlot {
     @Min(0)
     @Max(99)
     private Integer quantity;
+
+    @Min(1)
+    @Max(6)
+    @Column(name = "index_row")
+    private Integer row;
+
+    @Min(1)
+    @Max(10)
+    @Column(name = "index_col")
+    private Integer col;
 }

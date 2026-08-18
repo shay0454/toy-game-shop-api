@@ -7,17 +7,19 @@ import com.toy.game_shop.entity.InventorySlot;
 import lombok.Getter;
 
 @Getter
-@JsonPropertyOrder({"id","player","item","quantity"})
+@JsonPropertyOrder({"id","player","item","quantity","position"})
 public class InventorySlotResponse {
     private final Long id;
     private final PlayerResponse player;
     private final ItemResponse item;
     private final Integer quantity;
+    private final SlotPosition position;
 
     public InventorySlotResponse(InventorySlot slot){
         this.id = slot.getId();
         this.player = new PlayerResponse(slot.getPlayer());
         this.item = new ItemResponse(slot.getItem());
         this.quantity = slot.getQuantity();
+        this.position = new SlotPosition(slot.getRow(), slot.getCol());
     }
 }

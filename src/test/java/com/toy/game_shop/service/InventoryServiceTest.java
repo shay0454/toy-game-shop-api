@@ -1,5 +1,6 @@
 package com.toy.game_shop.service;
 
+import com.toy.game_shop.dto.inventory.SlotPosition;
 import com.toy.game_shop.entity.InventorySlot;
 import com.toy.game_shop.entity.Item;
 import com.toy.game_shop.entity.Player;
@@ -363,5 +364,62 @@ class InventoryServiceTest {
 
         List<InventorySlot> slots = inventoryService.findByPlayerId(player.getId());
         Assertions.assertThat(slots).isEmpty();
+    }
+
+    @Test
+    @DisplayName("빈 칸으로 위치 이동 확인")
+    void moveSlotNormal(){
+        InventorySlot slot = inventoryService.createSlots(player, item, 10).get(0);
+
+        InventorySlot moved = inventoryService.moveSlot(slot.getId(), new SlotPosition(2, 3));
+
+        Assertions.assertThat(moved.getRow()).isEqualTo(2);
+        Assertions.assertThat(moved.getCol()).isEqualTo(3);
+    }
+
+    @Test
+    @DisplayName("자기 자신의 현재 위치로 이동 시 예외 확인")
+    void moveSlotSamePosition(){
+        InventorySlot slot = inventoryService.createSlots(player, item, 10).get(0);
+
+        Assertions.assertThatThrownBy(()->inventoryService.moveSlot(
+                        slot.getId(), new SlotPosition(slot.getRow(), slot.getCol())))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    @DisplayName("미존재 슬롯 위치 이동 시 예외 확인")
+    void moveSlotNonId(){
+        Assertions.assertThatThrownBy(()->inventoryService.moveSlot(-1L, new SlotPosition(2, 3)))
+                .isInstanceOf(NoSuchElementException.class);
+    }
+
+    @Test
+    @DisplayName("다른 슬롯이 이미 점유한 위치로 이동 시 예외 확인")
+    void moveSlotOccupiedByOtherSlot(){
+        InventorySlot slot1 = inventoryService.createSlots(player, item, 10).get(0);
+
+        Item item2 = itemRepository.save(Item.builder().name("Sword").type(ItemType.WEAPON).build());
+        InventorySlot slot2 = inventoryService.createSlots(player, item2, 5).get(0);
+
+        Assertions.assertThatThrownBy(()->inventoryService.moveSlot(
+                        slot1.getId(), new SlotPosition(slot2.getRow(), slot2.getCol())))
+                .isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    @DisplayName("다른 플레이어가 점유한 위치는 이동에 영향 없음 확인")
+    void moveSlotIgnoresOtherPlayerPositions(){
+        InventorySlot mySlot = inventoryService.createSlots(player, item, 10).get(0);
+
+        Player other = playerRepository.save(Player.builder().nickname("other2").gold(0L).build());
+        InventorySlot otherSlot = inventoryService.createSlots(other, item, 5).get(0);
+        InventorySlot movedOtherSlot = inventoryService.moveSlot(otherSlot.getId(), new SlotPosition(4, 4));
+
+        InventorySlot moved = inventoryService.moveSlot(
+                mySlot.getId(), new SlotPosition(movedOtherSlot.getRow(), movedOtherSlot.getCol()));
+
+        Assertions.assertThat(moved.getRow()).isEqualTo(4);
+        Assertions.assertThat(moved.getCol()).isEqualTo(4);
     }
 }
